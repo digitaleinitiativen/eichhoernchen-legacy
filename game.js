@@ -21,6 +21,8 @@ var BULLET_TYPES = {
 }
 
 
+var TEXT_COLOR = '#ffdd00';
+
 var state = {
     preload: function() {
         this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png', 48, 96);
@@ -50,6 +52,11 @@ var state = {
         this.bullets.enableBody = true;
         this.hints = this.add.group();
 
+        this.scoreText = this.add.text(10, 10, '', {fill: TEXT_COLOR});
+
+        this.score = 0;
+        this.gameOver = false;
+
         this.cursors = game.input.keyboard.createCursorKeys();
 
         this.time.events.repeat(Phaser.Timer.SECOND * SPAWN_TIME, Infinity, this.spawnSomething, this);
@@ -57,6 +64,11 @@ var state = {
     },
     update: function() {
         this.squirrel.body.velocity.x = 0;
+        if (this.gameOver) {
+            return;
+        }
+
+        this.scoreText.text = 'Score: ' + this.score;
         if (this.cursors.left.isDown) {
             this.squirrel.body.velocity.x = -SQUIRREL_SPEED;
         }
@@ -68,8 +80,12 @@ var state = {
 
         this.physics.arcade.overlap(this.bullets, this.birds, this.bulletCollisionHandler, null, this);
         this.physics.arcade.overlap(this.squirrel, this.powerups, this.collectPowerUp, null, this);
+        this.physics.arcade.overlap(this.squirrel, this.birds, this.squirrelCollisionHandler, null, this);
     },
     spawnSomething: function() {
+        if (this.gameOver) {
+            return;
+        }
         var spawnies = [
             {
                 func: this.spawnLolli.bind(this),
@@ -130,6 +146,10 @@ var state = {
         bird.health = 100;
     },
     shoot: function() {
+        if (this.gameOver) {
+            return;
+        }
+
         switch(this.squirrel.data.mode) {
             case SQUIRREL_MODE.NUTS:
                 this.spawnNut();
@@ -184,6 +204,7 @@ var state = {
                 'explosion'
             );
             this.game.camera.shake(0.05, 500);
+            this.score++;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
                 explosion.kill();
@@ -225,6 +246,11 @@ var state = {
         move.start();
 
     },
+    squirrelCollisionHandler: function(squirrel) {
+        this.gameOver = true;
+        this.add.text(10, this.world.height / 2, 'Looooooser', {fill: TEXT_COLOR});
+        this.squirrel.animations.stop(null, true);
+    }
 };
 
 var game = new Phaser.Game(
