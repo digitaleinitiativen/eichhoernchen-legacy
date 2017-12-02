@@ -41,6 +41,8 @@ var state = {
         this.load.spritesheet('bird', 'assets/bird.png', 48, 48);
         this.load.spritesheet('flame', 'assets/flames.png', 24, 36);
         this.load.spritesheet('child', 'assets/lilsquirrels.png', 32, 54);
+        this.load.image('sky', 'assets/sky.png');
+        this.load.image('clouds', 'assets/clouds.png');
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
         this.load.image('lolli', 'assets/lolli.png');
@@ -53,7 +55,8 @@ var state = {
     },
     create: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
-
+        this.sky = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'sky');
+        this.clouds = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'clouds');
         this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
         this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 150, 'squirrel');
         this.squirrel.animations.add('run', [0, 1, 2, 3, 2, 1], 20, true);
@@ -105,6 +108,8 @@ var state = {
             this.squirrel.body.velocity.x = SQUIRREL_SPEED;
         }
 
+        this.sky.tilePosition.y += this.time.physicsElapsed * TREE_SPEED * 0.3;
+        this.clouds.tilePosition.y += this.time.physicsElapsed * TREE_SPEED * 0.6;
         this.tree.tilePosition.y += this.time.physicsElapsed * TREE_SPEED;
 
         this.physics.arcade.overlap(this.bullets, this.enemies, this.bulletCollisionHandler, null, this);
@@ -193,7 +198,7 @@ var state = {
     },
     createPowerUp: function(image, type, speed) {
         var powerup = this.powerups.create(
-            (this.game.width - this.cache.getImage(image).width) * Math.random(),
+            (this.game.width - this.cache.getImage(image).width - 40) * Math.random() + 20,
             -this.cache.getImage(image).height,
             image
         );
