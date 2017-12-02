@@ -1,7 +1,9 @@
 var SQUIRREL_SPEED = 200;
-var TREE_SPEED = 3;
+var TREE_SPEED = 180;
 var NUT_SPEED = 300;
 var NUT_TIME = 0.3;
+var SPAWN_TIME = 1;
+
 
 var state = {
     preload: function() {
@@ -9,6 +11,7 @@ var state = {
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
         this.load.image('bird', 'assets/bird.png');
+        this.load.image('lolli', 'assets/lolli.png');
     },
     create: function() {
         this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
@@ -18,6 +21,7 @@ var state = {
         this.game.physics.enable(this.squirrel);
 
         this.birds = this.add.group();
+        this.lollies = this.add.group();
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -26,10 +30,9 @@ var state = {
         this.cursors = game.input.keyboard.createCursorKeys();
 
         this.time.events.repeat(Phaser.Timer.SECOND * NUT_TIME, Infinity, this.createNut, this);
+        this.time.events.repeat(Phaser.Timer.SECOND * SPAWN_TIME, Infinity, this.spawnSomething, this);
 
         this.game.physics.enable(this.squirrel);
-        this.spawnBird();
-
     },
     update: function() {
         this.squirrel.body.velocity.x = 0;
@@ -40,24 +43,31 @@ var state = {
             this.squirrel.body.velocity.x = SQUIRREL_SPEED;
         }
 
-        this.tree.tilePosition.y += TREE_SPEED;
+        this.tree.tilePosition.y += this.time.physicsElapsed * TREE_SPEED;
 
-        this.birds.forEachAlive(function(bird) {
-            if(bird.body.y > this.game.height) {
-                bird.kill();
-                this.spawnBird();
-            }
-        }.bind(this));
         this.nuts.forEachAlive(function(nut) {
             if (nut.body.y < -this.cache.getImage('nut').height) {
                 nut.kill();
             }
         }.bind(this));
     },
+    spawnSomething: function() {
+        var spawnies = [this.spawnLolli.bind(this), this.spawnBird.bind(this)];
+        spawnies[Math.floor(spawnies.length * Math.random())]();
+    },
+    spawnLolli: function() {
+        var lolli = this.lollies.create(
+            (this.game.width - this.cache.getImage('lolli').width) * Math.random(),
+            -this.cache.getImage('lolli').height,
+            'lolli'
+        );
+        this.game.physics.arcade.enable(lolli);
+        lolli.body.velocity.y = TREE_SPEED;
+    },
     spawnBird: function() {
         var bird = this.birds.create(
-            (this.game.width - 96) * Math.random(),
-            -96,
+            (this.game.width - this.cache.getImage('bird').width) * Math.random(),
+            -this.cache.getImage('bird').height,
             'bird'
         );
         this.game.physics.arcade.enable(bird);
