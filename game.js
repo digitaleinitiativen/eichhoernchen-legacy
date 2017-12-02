@@ -229,6 +229,9 @@ var state = {
                 bird.health -= 100;
             break;
         }
+
+        this.score += 10;
+
         if(bird.health <= 0) {
             bird.kill();
             var explosion = this.add.sprite(
@@ -237,7 +240,7 @@ var state = {
                 'explosion'
             );
             this.game.camera.shake(0.05, 500);
-            this.score++;
+            this.score += 1000;
             this.birdFrequency += 10;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
@@ -255,7 +258,7 @@ var state = {
             break;
             case POWER_UP_TYPES.NUGGET:
                 this.showHint(squirrel, 'I LUVE NUGGETS');
-                this.score += 5;
+                this.score += 5000;
             break;
         }
     },
