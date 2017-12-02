@@ -8,7 +8,7 @@ var SAW_HEALTH = 250;
 var SPAWN_TIME = 0.1;
 var POWER_UP_TIME = 4;
 
-var DEBUG = true;
+var DEBUG = false;
 
 var POWER_UP_TYPES = {
     LOLLI: 1,
@@ -34,7 +34,7 @@ var state = {
         this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
-        this.load.image('bird', 'assets/bird.png');
+        this.load.spritesheet('bird', 'assets/bird.png', 48, 48);
         this.load.image('lolli', 'assets/lolli.png');
         this.load.image('explosion', 'assets/explosion.png');
         this.load.image('nugget', 'assets/nugget.png');
@@ -156,11 +156,14 @@ var state = {
             -this.cache.getImage('bird').height,
             'bird'
         );
-        
+
         bird.body.checkCollision.down = true;
         bird.body.setSize(24, 32, 11, 11);
         bird.body.velocity.y = BIRD_SPEED;
         bird.health = BIRD_HEALTH;
+        
+        bird.animations.add('fly', [0, 1, 2, 3, 2, 1], 20, true);
+        bird.animations.play('fly');
     },
     spawnSaw: function() {
         var saw = this.enemies.create(
