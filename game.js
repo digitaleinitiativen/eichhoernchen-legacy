@@ -70,10 +70,12 @@ var state = {
         }
 
         this.scoreText.text = 'Score: ' + this.score;
-        if (this.cursors.left.isDown) {
+        if (this.cursors.left.isDown && this.squirrel.body.position.x > 0) {
             this.squirrel.body.velocity.x = -SQUIRREL_SPEED;
         }
-        if (this.cursors.right.isDown) {
+        if (this.cursors.right.isDown
+            && this.squirrel.body.position.x < this.world.width - this.cache.getImage('squirrel').width
+        ) {
             this.squirrel.body.velocity.x = SQUIRREL_SPEED;
         }
 
