@@ -7,6 +7,9 @@ var SAW_HEALTH = 250;
 var SPAWN_TIME = 0.1;
 var POWER_UP_TIME = 4;
 
+var ASSET_VERSION = (new Date()).getTime();
+
+
 var DEBUG = false;
 
 var POWER_UP_TYPES = {
@@ -35,8 +38,8 @@ var TEXT_COLOR = '#ffdd00';
 
 var state = {
     preload: function() {
-        this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png', 48, 96);
-        this.load.spritesheet('squirrel-weapons', 'assets/squirrel-weapons.png', 48, 96);
+        this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png?' + ASSET_VERSION, 48, 96);
+        this.load.spritesheet('squirrel-weapons', 'assets/squirrel-weapons.png?'  + ASSET_VERSION, 48, 96);
         this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
         this.load.spritesheet('bird', 'assets/bird.png', 48, 48);
         this.load.spritesheet('flame', 'assets/flames.png', 24, 36);
@@ -60,6 +63,8 @@ var state = {
         this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
         this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 150, 'squirrel');
         this.squirrel.animations.add('run', [0, 1, 2, 3, 2, 1], 20, true);
+        this.squirrel.animations.add('run-pink', [4, 5, 6, 7, 6, 5], 20, true);
+        this.squirrel.animations.add('dead', [8, 9, 10, 11], 8, true);
         this.squirrel.animations.play('run');
         this.squirrel.data.mode = SQUIRREL_MODE.NUTS;
         this.game.physics.enable(this.squirrel);
@@ -68,8 +73,10 @@ var state = {
         this.squirrelWeapons = this.add.sprite(this.squirrel.x, this.squirrel.y, 'squirrel-weapons');
         this.squirrelWeapons.animations.add('grenade', [1], 1, false);
         this.squirrelWeapons.animations.add('flames', [0], 1, false);
-        this.squirrelWeapons.animations.add('none', [2], 1, false);
-        this.squirrelWeapons.animations.play('none');
+        this.squirrelWeapons.animations.add('child', [2], 1, false);
+        this.squirrelWeapons.animations.add('nuts', [3], 1, false);
+        this.squirrelWeapons.animations.add('none', [4], 1, false);
+        this.squirrelWeapons.animations.play('nuts');
 
         this.powerups = this.add.group();
 
@@ -344,6 +351,7 @@ var state = {
             case POWER_UP_TYPES.RAINBOW:
                 squirrel.data.mode = SQUIRREL_MODE.FLAMES;
                 this.showHint(squirrel, 'I\'M ON FIRE, BIAATCH');
+                this.squirrel.animations.play('run-pink');
                 this.squirrelWeapons.animations.play('flames');
                 this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);
             break;
@@ -354,6 +362,7 @@ var state = {
             case POWER_UP_TYPES.EGG:
                 squirrel.data.mode = SQUIRREL_MODE.RADIOACTIVE;
                 this.showHint(squirrel, 'SPREADING THE RADIOACTIVE PROGENY');
+                this.squirrelWeapons.animations.play('child');
                 //this.squirrelWeapons.animations.play('flames');
                 this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);            
             break;
@@ -361,7 +370,8 @@ var state = {
     },
     normalizeMode: function() {
         this.squirrel.data.mode = SQUIRREL_MODE.NUTS;
-        this.squirrelWeapons.animations.play('none');
+        this.squirrelWeapons.animations.play('nuts');
+        this.squirrel.animations.play('run');
     },
     showHint: function(focusOn, text) {
         var hint = this.game.add.text(
@@ -385,7 +395,8 @@ var state = {
     squirrelCollisionHandler: function(squirrel) {
         this.gameOver = true;
         this.add.text(10, this.world.height / 2, 'Looooooser', {fill: TEXT_COLOR});
-        this.squirrel.animations.stop(null, true);
+        this.squirrel.animations.play('dead');
+        this.squirrelWeapons.animations.play('none');
     },
     squirrelFallOfTheTree: function() {
         this.gameOver = true;
