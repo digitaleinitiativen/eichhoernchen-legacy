@@ -57,7 +57,6 @@ var state = {
             if (nut.body.y < -this.cache.getImage('nut').height) {
                 nut.kill();
             }
-            console.log(nut.body.touching);
         }.bind(this));
 
         this.physics.arcade.overlap(this.nuts, this.birds, this.nutCollisionHandler, null, this);
