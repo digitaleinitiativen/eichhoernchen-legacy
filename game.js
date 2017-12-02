@@ -63,6 +63,7 @@ var state = {
         this.score = 0;
         this.gameOver = false;
         this.birdFrequency = 30;
+        this.sawFrequency = 5;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -110,7 +111,7 @@ var state = {
             },
             {
                 func: this.spawnSaw.bind(this),
-                weight: 10
+                weight: this.sawFrequency,
             },
             {
                 func: function() {},
@@ -243,6 +244,7 @@ var state = {
             this.game.camera.shake(0.05, 500);
             this.score += enemy.score;
             this.birdFrequency += 10;
+            this.sawFrequency += 5;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
                 explosion.kill();
