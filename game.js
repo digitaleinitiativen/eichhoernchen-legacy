@@ -3,7 +3,6 @@ var TREE_SPEED = 180;
 var BULLET_SPEED = 300;
 var BIRD_SPEED = 300;
 var BIRD_HEALTH = 100;
-var NUT_TIME = 0.3;
 var SAW_HEALTH = 250;
 var SPAWN_TIME = 0.1;
 var POWER_UP_TIME = 4;
@@ -14,6 +13,7 @@ var POWER_UP_TYPES = {
     LOLLI: 1,
     NUGGET: 2,
     RAINBOW: 3,
+    BURGER: 3,
 };
 
 var SQUIRREL_MODE = {
@@ -45,6 +45,7 @@ var state = {
         this.load.image('nugget', 'assets/nugget.png');
         this.load.image('saw', 'assets/saw.png');
         this.load.image('egg', 'assets/egg.png');
+        this.load.image('burger', 'assets/burger.png');
     },
     create: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -76,12 +77,13 @@ var state = {
         this.score = 0;
         this.gameOver = false;
         this.birdFrequency = 30;
-        this.sawFrequency = 5;
+        this.sawFrequency = 3;
+        this.shootFrequency = 0.4;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
         this.time.events.repeat(Phaser.Timer.SECOND * SPAWN_TIME, Infinity, this.spawnSomething, this);
-        this.time.events.repeat(Phaser.Timer.SECOND * NUT_TIME, Infinity, this.shoot, this);
+        this.createShootTimer();
     },
     update: function() {
         this.squirrel.body.velocity.x = 0;
@@ -146,9 +148,13 @@ var state = {
                 weight: 3
             },
             {
+                func: this.spawnBurger.bind(this),
+                weight: 3,
+            },
+            {
                 func: function() {},
                 weight: 1000,
-            }
+            },
         ];
         var max = 0;
         for(var i = 0; i < spawnies.length; i++) max += spawnies[i].weight;
@@ -190,7 +196,17 @@ var state = {
         );
         this.game.physics.arcade.enable(rainbow);
         rainbow.body.velocity.y = TREE_SPEED;
-        rainbow.data.type = POWER_UP_TYPES.RAINBOW;        
+        rainbow.data.type = POWER_UP_TYPES.RAINBOW;
+    },      
+    spawnBurger: function() {
+        var burger = this.powerups.create(
+            (this.game.width - this.cache.getImage('burger').width) * Math.random(),
+            -this.cache.getImage('burger').height,
+            'burger'
+        );
+        this.game.physics.arcade.enable(burger);
+        burger.body.velocity.y = TREE_SPEED;
+        burger.data.type = POWER_UP_TYPES.BURGER;
     },
     spawnBird: function() {
         var bird = this.enemies.create(
@@ -307,7 +323,7 @@ var state = {
             this.game.camera.shake(0.05, 500);
             this.score += enemy.score;
             this.birdFrequency += 10;
-            this.sawFrequency += 5;
+            this.sawFrequency += 1;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
                 explosion.kill();
@@ -332,6 +348,9 @@ var state = {
                 this.showHint(squirrel, 'I\'M ON FIRE, BIAATCH');
                 this.squirrelWeapons.animations.play('flames');
                 this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);
+            case POWER_UP_TYPES.BURGER:
+                this.shootFrequency *= 0.9;
+                this.createShootTimer();
             break;
         }
     },
@@ -376,7 +395,13 @@ var state = {
             }.bind(this));
             this.game.debug.body(this.squirrel);
         }
-    }
+    },
+    createShootTimer: function() {
+        if (this.shootTimer) {
+            this.time.events.remove(this.shootTimer);
+        }
+        this.shootTimer = this.time.events.repeat(Phaser.Timer.SECOND * this.shootFrequency, Infinity, this.shoot, this);
+    },
 };
 
 var game = new Phaser.Game(
