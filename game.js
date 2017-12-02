@@ -1,13 +1,14 @@
-var GAME_HEIGHT = 680;
-var GAME_WIDTH = 320;
 var SQUIRREL_SPEED = 100;
+var TREE_SPEED = 3;
 
 var state = {
     preload: function() {
         this.load.image('squirrel', 'assets/squirrel.png');
+        this.load.image('tree', 'assets/tree.png');
     },
     create: function() {
-        this.squirrel = this.add.sprite(GAME_WIDTH / 2, GAME_HEIGHT - 100, 'squirrel');
+        this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
+        this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 100, 'squirrel');
         this.game.physics.enable(this.squirrel);
 
         this.cursors = game.input.keyboard.createCursorKeys();
@@ -20,12 +21,14 @@ var state = {
         if (this.cursors.right.isDown) {
             this.squirrel.body.velocity.x = SQUIRREL_SPEED;
         }
+
+        this.tree.tilePosition.y += TREE_SPEED;
     }
 };
 
 var game = new Phaser.Game(
-    GAME_WIDTH,
-    GAME_HEIGHT,
+    320,
+    680,
     Phaser.CANVAS,
     '', 
     state
