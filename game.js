@@ -254,61 +254,38 @@ var state = {
         }
     },
     spawnChild: function() {
-        var child = this.bullets.create(
-            this.squirrel.body.position.x,
-            this.squirrel.position.y - 48,
-            'child'
-        );
-
+        var child = this.createBullet('child', BULLET_TYPES.CHILD, BULLET_SPEED);
         child.animations.add('tongue', [0, 1, 2, 3, 2, 1], 20, true);
         child.animations.play('tongue');
-
-        child.body.checkCollision.up = true;
-        child.body.velocity.y = -BULLET_SPEED;
-        child.killOutOfBounds = true;
-        child.data.type = BULLET_TYPES.CHILD;
     },
     spawnGrenade: function() {
-        var grenade = this.bullets.create(
-            this.squirrel.body.position.x,
-            this.squirrel.position.y - 48,
-            'grenade'
-        );
-
+        var grenade = this.createBullet('grenade', BULLET_TYPES.GRENADE, BULLET_SPEED);
         grenade.animations.add('circle', [0, 1, 2, 3, 4, 5, 6], 20, true);
         grenade.animations.play('circle');
-
-        grenade.body.checkCollision.up = true;
-        grenade.body.velocity.y = -BULLET_SPEED;
-        grenade.killOutOfBounds = true;
-        grenade.data.type = BULLET_TYPES.GRENADE;
     },
     spawnFlame: function() {
-        var flame = this.bullets.create(
-            this.squirrel.body.position.x + 25,
-            this.squirrel.position.y - 10,
-            'flame'
-        );
-
+        var flame = this.createBullet('flame', BULLET_TYPES.FLAMES, BULLET_SPEED, 25);
         flame.animations.add('circle', [0, 1, 2, 3, 2, 1], 20, true);
         flame.animations.play('circle');
-
-        flame.body.checkCollision.up = true;
-        flame.body.velocity.y = -BULLET_SPEED;
-        flame.killOutOfBounds = true;
-        flame.data.type = BULLET_TYPES.FLAMES;
     },
     spawnNut: function() {
-        var nut = this.bullets.create(
-            this.squirrel.body.position.x + this.cache.getImage('nut').width / 2,
-            this.squirrel.position.y - this.cache.getImage('nut').height,
-            'nut'
+        this.createBullet('nut', BULLET_TYPES.NUT, BULLET_SPEED);
+    },
+    createBullet: function(image, type, speed, xOffset) {
+        if(!xOffset) xOffset = 0;
+        var bullet = this.bullets.create(
+            this.squirrel.body.position.x + xOffset,
+            this.squirrel.position.y,
+            image
         );
 
-        nut.body.checkCollision.up = true;
-        nut.body.velocity.y = -BULLET_SPEED;
-        nut.killOutOfBounds = true;
-        nut.data.type = BULLET_TYPES.NUT;
+        bullet.body.checkCollision.up = true;
+        bullet.body.velocity.y = -speed;
+        bullet.killOutOfBounds = true;
+        bullet.data.type = type;
+        bullet.y -= bullet.body.height;
+
+        return bullet;
     },
     bulletCollisionHandler: function(bullet, enemy) {
         bullet.kill();
