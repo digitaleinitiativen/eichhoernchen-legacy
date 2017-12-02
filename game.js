@@ -15,6 +15,11 @@ var SQUIRREL_MODE = {
     GRENADES: 2
 }
 
+var BULLET_TYPES = {
+    NUT: 1,
+    GRENADE: 2
+}
+
 
 var state = {
     preload: function() {
@@ -85,6 +90,7 @@ var state = {
         
         bird.body.checkCollision.down = true;
         bird.body.velocity.y = 300;
+        bird.health = 100;
     },
     shoot: function() {
         switch(this.squirrel.data.mode) {
@@ -109,6 +115,7 @@ var state = {
         grenade.body.checkCollision.up = true;
         grenade.body.velocity.y = -BULLET_SPEED;
         grenade.killOutOfBounds = true;
+        grenade.data.type = BULLET_TYPES.GRENADE;
     },
     spawnNut: function() {
         var nut = this.bullets.create(
@@ -120,20 +127,31 @@ var state = {
         nut.body.checkCollision.up = true;
         nut.body.velocity.y = -BULLET_SPEED;
         nut.killOutOfBounds = true;
+        nut.data.type = BULLET_TYPES.NUT;
     },
     bulletCollisionHandler: function(bullet, bird) {
         bullet.kill();
-        bird.kill();
-        var explosion = this.add.sprite(
-            bird.body.position.x - this.cache.getImage('explosion').width / 2,
-            bird.body.position.y - this.cache.getImage('explosion').height / 2,
-            'explosion'
-        );
-        this.game.camera.shake(0.05, 500);
+        switch(bullet.data.type) {
+            case BULLET_TYPES.NUT: 
+                bird.health -= 34;
+            break;
+            case BULLET_TYPES.GRENADE:
+                bird.health -= 100;
+            break;
+        }
+        if(bird.health <= 0) {
+            bird.kill();
+            var explosion = this.add.sprite(
+                bird.body.position.x - this.cache.getImage('explosion').width / 2,
+                bird.body.position.y - this.cache.getImage('explosion').height / 2,
+                'explosion'
+            );
+            this.game.camera.shake(0.05, 500);
 
-        this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
-            explosion.kill();
-        });
+            this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
+                explosion.kill();
+            });            
+        }
     },
     collectPowerUp: function(squirrel, powerUp) {
         powerUp.kill();
