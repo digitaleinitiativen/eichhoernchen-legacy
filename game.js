@@ -9,8 +9,11 @@ var state = {
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
         this.load.image('bird', 'assets/bird.png');
+        this.load.image('explosion', 'assets/explosion.png');
     },
     create: function() {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+
         this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
         this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 150, 'squirrel');
         this.squirrel.animations.add('run', [0, 1, 2, 3, 2, 1], 20, true);
@@ -18,14 +21,16 @@ var state = {
         this.game.physics.enable(this.squirrel);
 
         this.birds = this.add.group();
+        this.birds.enableBody = true;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
         this.nuts = this.add.group();
+        this.nuts.enableBody = true;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
-        this.time.events.repeat(Phaser.Timer.SECOND * NUT_TIME, Infinity, this.createNut, this);
+        this.time.events.repeat(Phaser.Timer.SECOND * NUT_TIME, Infinity, this.spawnNut, this);
 
         this.game.physics.enable(this.squirrel);
         this.spawnBird();
@@ -52,7 +57,10 @@ var state = {
             if (nut.body.y < -this.cache.getImage('nut').height) {
                 nut.kill();
             }
+            console.log(nut.body.touching);
         }.bind(this));
+
+        this.physics.arcade.overlap(this.nuts, this.birds, this.nutCollisionHandler, null, this);
     },
     spawnBird: function() {
         var bird = this.birds.create(
@@ -60,18 +68,31 @@ var state = {
             -96,
             'bird'
         );
-        this.game.physics.arcade.enable(bird);
+        
+        bird.body.checkCollision.down = true;
         bird.body.velocity.y = 300;
     },
-    createNut: function() {
+    spawnNut: function() {
         var nut = this.nuts.create(
             this.squirrel.body.position.x,
             this.squirrel.position.y - this.cache.getImage('nut').height,
             'nut'
         );
 
-        this.game.physics.enable(nut);
+        nut.body.checkCollision.up = true;
         nut.body.velocity.y = -NUT_SPEED;
+    },
+    nutCollisionHandler: function(nut, bird) {
+        nut.kill();
+        bird.kill();
+        var explosion = this.add.sprite(
+            bird.body.position.x - this.cache.getImage('explosion').width / 2,
+            bird.body.position.y - this.cache.getImage('explosion').height / 2,
+            'explosion'
+        );
+        this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
+            explosion.kill();
+        });
     }
 };
 
