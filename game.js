@@ -12,17 +12,20 @@ var DEBUG = false;
 
 var POWER_UP_TYPES = {
     LOLLI: 1,
-    NUGGET: 2
+    NUGGET: 2,
+    RAINBOW: 3,
 };
 
 var SQUIRREL_MODE = {
     NUTS: 1,
-    GRENADES: 2
+    GRENADES: 2,
+    FLAMES: 3
 };
 
 var BULLET_TYPES = {
     NUT: 1,
-    GRENADE: 2
+    GRENADE: 2,
+    FLAMES: 3
 };
 
 var TEXT_COLOR = '#ffdd00';
@@ -33,12 +36,15 @@ var state = {
         this.load.spritesheet('squirrel-weapons', 'assets/squirrel-weapons.png', 48, 96);
         this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
         this.load.spritesheet('bird', 'assets/bird.png', 48, 48);
+        this.load.spritesheet('flame', 'assets/flames.png', 24, 36);
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
         this.load.image('lolli', 'assets/lolli.png');
+        this.load.image('rainbow', 'assets/rainbow.png');
         this.load.image('explosion', 'assets/explosion.png');
         this.load.image('nugget', 'assets/nugget.png');
         this.load.image('saw', 'assets/saw.png');
+        this.load.image('egg', 'assets/egg.png');
     },
     create: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -101,6 +107,16 @@ var state = {
         if(this.squirrel.body.left < 25 || this.squirrel.body.right > this.game.width - 25)
             this.squirrelFallOfTheTree();
 
+        this.bullets.forEachAlive(function(bullet) {
+            switch(bullet.data.type) {
+                case BULLET_TYPES.FLAMES:
+                    if(bullet.body.top < 200)
+                        bullet.kill();
+                break;
+            }
+        }.bind(this));
+    },
+    preRender: function() {
         this.squirrelWeapons.x = this.squirrel.x;
         this.squirrelWeapons.y = this.squirrel.y;
     },
@@ -124,6 +140,10 @@ var state = {
             {
                 func: this.spawnSaw.bind(this),
                 weight: this.sawFrequency,
+            },
+            {
+                func: this.spawnRainbow.bind(this),
+                weight: 3
             },
             {
                 func: function() {},
@@ -161,6 +181,16 @@ var state = {
         this.game.physics.arcade.enable(nugget);
         nugget.body.velocity.y = TREE_SPEED;
         nugget.data.type = POWER_UP_TYPES.NUGGET;
+    },
+    spawnRainbow: function() {
+        var rainbow = this.powerups.create(
+            (this.game.width - this.cache.getImage('rainbow').width) * Math.random(),
+            -this.cache.getImage('rainbow').height,
+            'rainbow'
+        );
+        this.game.physics.arcade.enable(rainbow);
+        rainbow.body.velocity.y = TREE_SPEED;
+        rainbow.data.type = POWER_UP_TYPES.RAINBOW;        
     },
     spawnBird: function() {
         var bird = this.enemies.create(
@@ -204,6 +234,9 @@ var state = {
             case SQUIRREL_MODE.GRENADE:
                 this.spawnGrenade();
             break;
+            case SQUIRREL_MODE.FLAMES:
+                this.spawnFlame();
+            break;
         }
     },
     spawnGrenade: function() {
@@ -220,6 +253,21 @@ var state = {
         grenade.body.velocity.y = -BULLET_SPEED;
         grenade.killOutOfBounds = true;
         grenade.data.type = BULLET_TYPES.GRENADE;
+    },
+    spawnFlame: function() {
+        var flame = this.bullets.create(
+            this.squirrel.body.position.x + 25,
+            this.squirrel.position.y - 10,
+            'flame'
+        );
+
+        flame.animations.add('circle', [0, 1, 2, 3, 2, 1], 20, true);
+        flame.animations.play('circle');
+
+        flame.body.checkCollision.up = true;
+        flame.body.velocity.y = -BULLET_SPEED;
+        flame.killOutOfBounds = true;
+        flame.data.type = BULLET_TYPES.FLAMES;
     },
     spawnNut: function() {
         var nut = this.bullets.create(
@@ -241,6 +289,9 @@ var state = {
             break;
             case BULLET_TYPES.GRENADE:
                 enemy.health -= 100;
+            break;
+            case BULLET_TYPES.FLAMES:
+                enemy.health -= 400;
             break;
         }
 
@@ -276,6 +327,12 @@ var state = {
                 this.showHint(squirrel, 'I LUVE NUGGETS');
                 this.score += 5000;
             break;
+            case POWER_UP_TYPES.RAINBOW:
+                squirrel.data.mode = SQUIRREL_MODE.FLAMES;
+                this.showHint(squirrel, 'I\'M ON FIRE, BIAATCH');
+                this.squirrelWeapons.animations.play('flames');
+                this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);
+            break;
         }
     },
     normalizeMode: function() {
@@ -310,6 +367,7 @@ var state = {
         this.gameOver = true;
         this.add.text(10, this.world.height / 2, 'You fell of the tree.\nLOOOOL\nU suck', {fill: TEXT_COLOR, align: 'center'});
         this.squirrel.kill();
+        this.squirrelWeapons.animations.play('none');
     },
     render: function() {
         if(DEBUG) {
