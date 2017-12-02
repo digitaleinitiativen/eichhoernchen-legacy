@@ -1,4 +1,4 @@
-var SQUIRREL_SPEED = 100;
+var SQUIRREL_SPEED = 200;
 var TREE_SPEED = 3;
 
 var state = {
@@ -13,9 +13,13 @@ var state = {
         this.squirrel.animations.add('run', [0, 1, 2, 3, 2, 1], 20, true);
         this.squirrel.animations.play('run');
 
+        this.birds = this.add.group();
+
         this.game.physics.enable(this.squirrel);
 
         this.cursors = game.input.keyboard.createCursorKeys();
+
+        this.spawnBird();
     },
     update: function() {
         this.squirrel.body.velocity.x = 0;
@@ -27,6 +31,23 @@ var state = {
         }
 
         this.tree.tilePosition.y += TREE_SPEED;
+
+        var obj = this;
+        this.birds.forEachAlive(function(bird) {
+            if(bird.body.y > obj.game.height) {
+                bird.kill();
+                obj.spawnBird();
+            }
+        });
+    },
+    spawnBird: function() {
+        var bird = this.birds.create(
+            (this.game.width - 96) * Math.random(),
+            -96,
+            'bird'
+        );
+        this.game.physics.arcade.enable(bird);
+        bird.body.velocity.y = 300;
     }
 };
 
