@@ -129,7 +129,7 @@ var state = {
             },
             {
                 func: this.spawnBurger.bind(this),
-                weight: 3,
+                weight: 5,
             },
             {
                 func: function() {},
