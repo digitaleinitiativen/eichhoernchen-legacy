@@ -12,8 +12,11 @@ var state = {
         this.load.image('nut', 'assets/nut.png');
         this.load.image('bird', 'assets/bird.png');
         this.load.image('lolli', 'assets/lolli.png');
+        this.load.image('explosion', 'assets/explosion.png');
     },
     create: function() {
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+
         this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
         this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 150, 'squirrel');
         this.squirrel.animations.add('run', [0, 1, 2, 3, 2, 1], 20, true);
@@ -21,18 +24,15 @@ var state = {
         this.game.physics.enable(this.squirrel);
 
         this.birds = this.add.group();
+        this.birds.enableBody = true;
         this.lollies = this.add.group();
-
-        this.cursors = game.input.keyboard.createCursorKeys();
-
         this.nuts = this.add.group();
+        this.nuts.enableBody = true;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
-        this.time.events.repeat(Phaser.Timer.SECOND * NUT_TIME, Infinity, this.createNut, this);
         this.time.events.repeat(Phaser.Timer.SECOND * SPAWN_TIME, Infinity, this.spawnSomething, this);
-
-        this.game.physics.enable(this.squirrel);
+        this.time.events.repeat(Phaser.Timer.SECOND * NUT_TIME, Infinity, this.spawnNut, this);
     },
     update: function() {
         this.squirrel.body.velocity.x = 0;
@@ -50,6 +50,8 @@ var state = {
                 nut.kill();
             }
         }.bind(this));
+
+        this.physics.arcade.overlap(this.nuts, this.birds, this.nutCollisionHandler, null, this);
     },
     spawnSomething: function() {
         var spawnies = [this.spawnLolli.bind(this), this.spawnBird.bind(this)];
@@ -70,18 +72,31 @@ var state = {
             -this.cache.getImage('bird').height,
             'bird'
         );
-        this.game.physics.arcade.enable(bird);
+        
+        bird.body.checkCollision.down = true;
         bird.body.velocity.y = 300;
     },
-    createNut: function() {
+    spawnNut: function() {
         var nut = this.nuts.create(
             this.squirrel.body.position.x,
             this.squirrel.position.y - this.cache.getImage('nut').height,
             'nut'
         );
 
-        this.game.physics.enable(nut);
+        nut.body.checkCollision.up = true;
         nut.body.velocity.y = -NUT_SPEED;
+    },
+    nutCollisionHandler: function(nut, bird) {
+        nut.kill();
+        bird.kill();
+        var explosion = this.add.sprite(
+            bird.body.position.x - this.cache.getImage('explosion').width / 2,
+            bird.body.position.y - this.cache.getImage('explosion').height / 2,
+            'explosion'
+        );
+        this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
+            explosion.kill();
+        });
     }
 };
 
