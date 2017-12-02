@@ -13,18 +13,17 @@ var DEBUG = false;
 var POWER_UP_TYPES = {
     LOLLI: 1,
     NUGGET: 2
-}
+};
 
 var SQUIRREL_MODE = {
     NUTS: 1,
     GRENADES: 2
-}
+};
 
 var BULLET_TYPES = {
     NUT: 1,
     GRENADE: 2
-}
-
+};
 
 var TEXT_COLOR = '#ffdd00';
 
@@ -161,6 +160,7 @@ var state = {
         bird.body.setSize(24, 32, 11, 11);
         bird.body.velocity.y = BIRD_SPEED;
         bird.health = BIRD_HEALTH;
+        bird.score = 1000;
         
         bird.animations.add('fly', [0, 1, 2, 3, 2, 1], 20, true);
         bird.animations.play('fly');
@@ -177,6 +177,7 @@ var state = {
         saw.body.velocity.y = TREE_SPEED;
         saw.body.velocity.x = 20;
         saw.health = SAW_HEALTH;
+        saw.score = 3000;
     },
     shoot: function() {
         if (this.gameOver) {
@@ -219,28 +220,28 @@ var state = {
         nut.killOutOfBounds = true;
         nut.data.type = BULLET_TYPES.NUT;
     },
-    bulletCollisionHandler: function(bullet, bird) {
+    bulletCollisionHandler: function(bullet, enemy) {
         bullet.kill();
         switch(bullet.data.type) {
             case BULLET_TYPES.NUT: 
-                bird.health -= 34;
+                enemy.health -= 34;
             break;
             case BULLET_TYPES.GRENADE:
-                bird.health -= 100;
+                enemy.health -= 100;
             break;
         }
 
         this.score += 10;
 
-        if(bird.health <= 0) {
-            bird.kill();
+        if(enemy.health <= 0) {
+            enemy.kill();
             var explosion = this.add.sprite(
-                bird.body.position.x - this.cache.getImage('explosion').width / 2,
-                bird.body.position.y - this.cache.getImage('explosion').height / 2,
+                enemy.body.position.x - this.cache.getImage('explosion').width / 2,
+                enemy.body.position.y - this.cache.getImage('explosion').height / 2,
                 'explosion'
             );
             this.game.camera.shake(0.05, 500);
-            this.score += 1000;
+            this.score += enemy.score;
             this.birdFrequency += 10;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
