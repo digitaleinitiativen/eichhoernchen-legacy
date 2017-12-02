@@ -179,7 +179,7 @@ var state = {
     },
     spawnNut: function() {
         var nut = this.bullets.create(
-            this.squirrel.body.position.x,
+            this.squirrel.body.position.x + this.cache.getImage('nut').width / 2,
             this.squirrel.position.y - this.cache.getImage('nut').height,
             'nut'
         );
@@ -225,6 +225,7 @@ var state = {
             break;
             case POWER_UP_TYPES.NUGGET:
                 this.showHint(squirrel, 'I LUVE NUGGETS');
+                this.score += 5;
             break;
         }
     },
