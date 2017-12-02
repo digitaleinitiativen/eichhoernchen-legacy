@@ -71,7 +71,7 @@ var state = {
         this.score = 0;
         this.gameOver = false;
         this.birdFrequency = 30;
-        this.sawFrequency = 5;
+        this.sawFrequency = 3;
         this.shootFrequency = 0.4;
 
         this.cursors = game.input.keyboard.createCursorKeys();
@@ -196,7 +196,7 @@ var state = {
     },
     spawnSaw: function() {
         var saw = this.enemies.create(
-            (this.game.width - this.cache.getImage('saw').width) * Math.random(),
+            (this.game.width - this.cache.getImage('saw').width),
             -this.cache.getImage('saw').height,
             'saw'
         );
@@ -272,7 +272,7 @@ var state = {
             this.game.camera.shake(0.05, 500);
             this.score += enemy.score;
             this.birdFrequency += 10;
-            this.sawFrequency += 5;
+            this.sawFrequency += 1;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
                 explosion.kill();
