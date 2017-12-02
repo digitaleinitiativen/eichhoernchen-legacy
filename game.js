@@ -30,6 +30,7 @@ var state = {
         this.load.image('lolli', 'assets/lolli.png');
         this.load.image('explosion', 'assets/explosion.png');
         this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
+        this.load.image('nugget', 'assets/nugget.png');
     },
     create: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -41,9 +42,10 @@ var state = {
         this.squirrel.data.mode = SQUIRREL_MODE.NUTS;
         this.game.physics.enable(this.squirrel);
 
+        this.powerups = this.add.group();
+
         this.birds = this.add.group();
         this.birds.enableBody = true;
-        this.powerups = this.add.group();
         this.bullets = this.add.group();
         this.bullets.enableBody = true;
         this.hints = this.add.group();
@@ -68,8 +70,33 @@ var state = {
         this.physics.arcade.overlap(this.squirrel, this.powerups, this.collectPowerUp, null, this);
     },
     spawnSomething: function() {
-        var spawnies = [this.spawnLolli.bind(this), this.spawnBird.bind(this)];
-        spawnies[Math.floor(spawnies.length * Math.random())]();
+        var spawnies = [
+            {
+                func: this.spawnLolli.bind(this),
+                weight: 5
+            },
+            {
+                func: this.spawnNugget.bind(this),
+                weight: 5
+            },
+            {
+                func: this.spawnBird.bind(this),
+                weight: 30
+            }
+            
+        ];
+        var max = 0;
+        for(var i = 0; i < spawnies.length; i++) max += spawnies[i].weight;
+        var random = Math.floor(Math.random() * max);
+        var steps = 0;
+        console.log(max, random);
+        for(var i = 0; i < spawnies.length; i++) {
+            steps += spawnies[i].weight;
+            if(random < steps) {
+                spawnies[i].func.call();
+                return;
+            }
+        }
     },
     spawnLolli: function() {
         var lolli = this.powerups.create(
@@ -80,6 +107,16 @@ var state = {
         this.game.physics.arcade.enable(lolli);
         lolli.body.velocity.y = TREE_SPEED;
         lolli.data.type = POWER_UP_TYPES.LOLLI;
+    },
+    spawnNugget: function() {
+        var nugget = this.powerups.create(
+            (this.game.width - this.cache.getImage('nugget').width) * Math.random(),
+            -this.cache.getImage('nugget').height,
+            'nugget'
+        );
+        this.game.physics.arcade.enable(nugget);
+        nugget.body.velocity.y = TREE_SPEED;
+        nugget.data.type = POWER_UP_TYPES.NUGGET;
     },
     spawnBird: function() {
         var bird = this.birds.create(
@@ -160,6 +197,9 @@ var state = {
                 squirrel.data.mode = SQUIRREL_MODE.GRENADE;
                 this.showHint(squirrel, 'GRENADE LOLLI');
                 this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);
+            break;
+            case POWER_UP_TYPES.NUGGET:
+                this.showHint(squirrel, 'I LUVE NUGGETS');
             break;
         }
     },
