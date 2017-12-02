@@ -2,7 +2,7 @@ var SQUIRREL_SPEED = 200;
 var TREE_SPEED = 180;
 var BULLET_SPEED = 300;
 var NUT_TIME = 0.3;
-var SPAWN_TIME = 1;
+var SPAWN_TIME = 0.1;
 var POWER_UP_TIME = 4;
 
 var POWER_UP_TYPES = {
@@ -56,6 +56,7 @@ var state = {
 
         this.score = 0;
         this.gameOver = false;
+        this.birdFrequency = 30;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -97,15 +98,17 @@ var state = {
             },
             {
                 func: this.spawnBird.bind(this),
-                weight: 30
+                weight: this.birdFrequency,
+            },
+            {
+                func: function() {},
+                weight: 1000,
             }
-            
         ];
         var max = 0;
         for(var i = 0; i < spawnies.length; i++) max += spawnies[i].weight;
         var random = Math.floor(Math.random() * max);
         var steps = 0;
-        console.log(max, random);
         for(var i = 0; i < spawnies.length; i++) {
             steps += spawnies[i].weight;
             if(random < steps) {
@@ -205,6 +208,7 @@ var state = {
             );
             this.game.camera.shake(0.05, 500);
             this.score++;
+            this.birdFrequency += 10;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
                 explosion.kill();
