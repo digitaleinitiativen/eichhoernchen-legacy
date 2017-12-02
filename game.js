@@ -14,18 +14,21 @@ var POWER_UP_TYPES = {
     NUGGET: 2,
     RAINBOW: 3,
     BURGER: 3,
+    EGG: 5
 };
 
 var SQUIRREL_MODE = {
     NUTS: 1,
     GRENADES: 2,
-    FLAMES: 3
+    FLAMES: 3,
+    RADIOACTIVE: 4
 };
 
 var BULLET_TYPES = {
     NUT: 1,
     GRENADE: 2,
-    FLAMES: 3
+    FLAMES: 3,
+    CHILD: 4
 };
 
 var TEXT_COLOR = '#ffdd00';
@@ -37,6 +40,7 @@ var state = {
         this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
         this.load.spritesheet('bird', 'assets/bird.png', 48, 48);
         this.load.spritesheet('flame', 'assets/flames.png', 24, 36);
+        this.load.spritesheet('child', 'assets/lilsquirrels.png', 32, 54);
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
         this.load.image('lolli', 'assets/lolli.png');
@@ -152,6 +156,10 @@ var state = {
                 weight: 5,
             },
             {
+                func: this.spawnEgg.bind(this),
+                weight: 15,
+            },
+            {
                 func: function() {},
                 weight: 1000,
             },
@@ -169,44 +177,30 @@ var state = {
         }
     },
     spawnLolli: function() {
-        var lolli = this.powerups.create(
-            (this.game.width - this.cache.getImage('lolli').width) * Math.random(),
-            -this.cache.getImage('lolli').height,
-            'lolli'
-        );
-        this.game.physics.arcade.enable(lolli);
-        lolli.body.velocity.y = TREE_SPEED;
-        lolli.data.type = POWER_UP_TYPES.LOLLI;
+        this.createPowerUp('lolli', POWER_UP_TYPES.LOLLI, TREE_SPEED);
     },
     spawnNugget: function() {
-        var nugget = this.powerups.create(
-            (this.game.width - this.cache.getImage('nugget').width) * Math.random(),
-            -this.cache.getImage('nugget').height,
-            'nugget'
-        );
-        this.game.physics.arcade.enable(nugget);
-        nugget.body.velocity.y = TREE_SPEED;
-        nugget.data.type = POWER_UP_TYPES.NUGGET;
+        this.createPowerUp('nugget', POWER_UP_TYPES.NUGGET, TREE_SPEED);
     },
     spawnRainbow: function() {
-        var rainbow = this.powerups.create(
-            (this.game.width - this.cache.getImage('rainbow').width) * Math.random(),
-            -this.cache.getImage('rainbow').height,
-            'rainbow'
-        );
-        this.game.physics.arcade.enable(rainbow);
-        rainbow.body.velocity.y = TREE_SPEED;
-        rainbow.data.type = POWER_UP_TYPES.RAINBOW;
+        this.createPowerUp('rainbow', POWER_UP_TYPES.RAINBOW, TREE_SPEED);
     },      
     spawnBurger: function() {
-        var burger = this.powerups.create(
-            (this.game.width - this.cache.getImage('burger').width) * Math.random(),
-            -this.cache.getImage('burger').height,
-            'burger'
+        this.createPowerUp('burger', POWER_UP_TYPES.BURGER, TREE_SPEED);
+    },
+    spawnEgg: function() {
+        this.createPowerUp('egg', POWER_UP_TYPES.EGG, TREE_SPEED);
+    },
+    createPowerUp: function(image, type, speed) {
+        var powerup = this.powerups.create(
+            (this.game.width - this.cache.getImage(image).width) * Math.random(),
+            -this.cache.getImage(image).height,
+            image
         );
-        this.game.physics.arcade.enable(burger);
-        burger.body.velocity.y = TREE_SPEED;
-        burger.data.type = POWER_UP_TYPES.BURGER;
+        this.game.physics.arcade.enable(powerup);
+        powerup.body.velocity.y = speed;
+        powerup.data.type = type;
+        return powerup;
     },
     spawnBird: function() {
         var bird = this.enemies.create(
@@ -244,16 +238,35 @@ var state = {
         }
 
         switch(this.squirrel.data.mode) {
-            case SQUIRREL_MODE.NUTS:
-                this.spawnNut();
-            break;
             case SQUIRREL_MODE.GRENADE:
                 this.spawnGrenade();
             break;
             case SQUIRREL_MODE.FLAMES:
                 this.spawnFlame();
             break;
+            case SQUIRREL_MODE.RADIOACTIVE:
+                this.spawnChild();
+            break;
+            case SQUIRREL_MODE.NUTS:
+            default:
+                this.spawnNut();
+            break;
         }
+    },
+    spawnChild: function() {
+        var child = this.bullets.create(
+            this.squirrel.body.position.x,
+            this.squirrel.position.y - 48,
+            'child'
+        );
+
+        child.animations.add('tongue', [0, 1, 2, 3, 2, 1], 20, true);
+        child.animations.play('tongue');
+
+        child.body.checkCollision.up = true;
+        child.body.velocity.y = -BULLET_SPEED;
+        child.killOutOfBounds = true;
+        child.data.type = BULLET_TYPES.CHILD;
     },
     spawnGrenade: function() {
         var grenade = this.bullets.create(
@@ -309,6 +322,9 @@ var state = {
             case BULLET_TYPES.FLAMES:
                 enemy.health -= 400;
             break;
+            case BULLET_TYPES.CHILD:
+                enemy.health -= 15;
+            break;
         }
 
         this.score += 10;
@@ -352,6 +368,12 @@ var state = {
             case POWER_UP_TYPES.BURGER:
                 this.shootFrequency *= 0.9;
                 this.createShootTimer();
+            break;
+            case POWER_UP_TYPES.EGG:
+                squirrel.data.mode = SQUIRREL_MODE.RADIOACTIVE;
+                this.showHint(squirrel, 'SPREADING THE RADIOACTIVE PROGENY');
+                //this.squirrelWeapons.animations.play('flames');
+                this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);            
             break;
         }
     },
