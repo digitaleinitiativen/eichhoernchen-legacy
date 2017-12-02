@@ -1,9 +1,14 @@
 var SQUIRREL_SPEED = 200;
 var TREE_SPEED = 180;
 var BULLET_SPEED = 300;
+var BIRD_SPEED = 300;
+var BIRD_HEALTH = 100;
 var NUT_TIME = 0.3;
+var SAW_HEALTH = 250;
 var SPAWN_TIME = 1;
 var POWER_UP_TIME = 4;
+
+var DEBUG = true;
 
 var POWER_UP_TYPES = {
     LOLLI: 1,
@@ -26,13 +31,14 @@ var TEXT_COLOR = '#ffdd00';
 var state = {
     preload: function() {
         this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png', 48, 96);
+        this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
         this.load.image('tree', 'assets/tree.png');
         this.load.image('nut', 'assets/nut.png');
         this.load.image('bird', 'assets/bird.png');
         this.load.image('lolli', 'assets/lolli.png');
         this.load.image('explosion', 'assets/explosion.png');
-        this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
         this.load.image('nugget', 'assets/nugget.png');
+        this.load.image('saw', 'assets/saw.png');
     },
     create: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -43,11 +49,12 @@ var state = {
         this.squirrel.animations.play('run');
         this.squirrel.data.mode = SQUIRREL_MODE.NUTS;
         this.game.physics.enable(this.squirrel);
+        this.squirrel.body.setSize(34, 64, 8, 0);
 
         this.powerups = this.add.group();
 
-        this.birds = this.add.group();
-        this.birds.enableBody = true;
+        this.enemies = this.add.group();
+        this.enemies.enableBody = true;
         this.bullets = this.add.group();
         this.bullets.enableBody = true;
         this.hints = this.add.group();
@@ -78,9 +85,9 @@ var state = {
 
         this.tree.tilePosition.y += this.time.physicsElapsed * TREE_SPEED;
 
-        this.physics.arcade.overlap(this.bullets, this.birds, this.bulletCollisionHandler, null, this);
+        this.physics.arcade.overlap(this.bullets, this.enemies, this.bulletCollisionHandler, null, this);
         this.physics.arcade.overlap(this.squirrel, this.powerups, this.collectPowerUp, null, this);
-        this.physics.arcade.overlap(this.squirrel, this.birds, this.squirrelCollisionHandler, null, this);
+        this.physics.arcade.overlap(this.squirrel, this.enemies, this.squirrelCollisionHandler, null, this);
     },
     spawnSomething: function() {
         if (this.gameOver) {
@@ -98,6 +105,10 @@ var state = {
             {
                 func: this.spawnBird.bind(this),
                 weight: 30
+            },
+            {
+                func: this.spawnSaw.bind(this),
+                weight: 5
             }
             
         ];
@@ -135,15 +146,29 @@ var state = {
         nugget.data.type = POWER_UP_TYPES.NUGGET;
     },
     spawnBird: function() {
-        var bird = this.birds.create(
+        var bird = this.enemies.create(
             (this.game.width - this.cache.getImage('bird').width) * Math.random(),
             -this.cache.getImage('bird').height,
             'bird'
         );
         
         bird.body.checkCollision.down = true;
-        bird.body.velocity.y = 300;
-        bird.health = 100;
+        bird.body.setSize(24, 32, 11, 11);
+        bird.body.velocity.y = BIRD_SPEED;
+        bird.health = BIRD_HEALTH;
+    },
+    spawnSaw: function() {
+        var saw = this.enemies.create(
+            (this.game.width - this.cache.getImage('saw').width),
+            -this.cache.getImage('saw').height,
+            'saw'
+        );
+        
+        saw.body.checkCollision.down = true;
+        saw.body.setSize(165, 37, 0, 2);
+        saw.body.velocity.y = TREE_SPEED;
+        saw.body.velocity.x = 20;
+        saw.health = SAW_HEALTH;
     },
     shoot: function() {
         if (this.gameOver) {
@@ -250,6 +275,14 @@ var state = {
         this.gameOver = true;
         this.add.text(10, this.world.height / 2, 'Looooooser', {fill: TEXT_COLOR});
         this.squirrel.animations.stop(null, true);
+    },
+    render: function() {
+        if(DEBUG) {
+            this.enemies.forEachAlive(function(enemy) { 
+                this.game.debug.body(enemy);
+            }.bind(this));
+            this.game.debug.body(this.squirrel);
+        }
     }
 };
 
