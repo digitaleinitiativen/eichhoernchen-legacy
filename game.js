@@ -3,12 +3,16 @@ var TREE_SPEED = 3;
 
 var state = {
     preload: function() {
-        this.load.image('squirrel', 'assets/squirrel.png');
+        this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png', 48, 96);
         this.load.image('tree', 'assets/tree.png');
+        this.load.image('bird', 'assets/bird.png');
     },
     create: function() {
         this.tree = this.add.tileSprite(0, 0, this.world.width, this.world.height, 'tree');
-        this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 100, 'squirrel');
+        this.squirrel = this.add.sprite(this.world.width / 2, this.world.height - 150, 'squirrel');
+        this.squirrel.animations.add('run', [0, 1, 2, 3, 2, 1], 20, true);
+        this.squirrel.animations.play('run');
+
         this.game.physics.enable(this.squirrel);
 
         this.cursors = game.input.keyboard.createCursorKeys();
