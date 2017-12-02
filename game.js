@@ -5,7 +5,7 @@ var BIRD_SPEED = 300;
 var BIRD_HEALTH = 100;
 var NUT_TIME = 0.3;
 var SAW_HEALTH = 250;
-var SPAWN_TIME = 1;
+var SPAWN_TIME = 0.1;
 var POWER_UP_TIME = 4;
 
 var DEBUG = true;
@@ -63,6 +63,7 @@ var state = {
 
         this.score = 0;
         this.gameOver = false;
+        this.birdFrequency = 30;
 
         this.cursors = game.input.keyboard.createCursorKeys();
 
@@ -76,10 +77,12 @@ var state = {
         }
 
         this.scoreText.text = 'Score: ' + this.score;
-        if (this.cursors.left.isDown) {
+        if (this.cursors.left.isDown && this.squirrel.body.position.x > 0) {
             this.squirrel.body.velocity.x = -SQUIRREL_SPEED;
         }
-        if (this.cursors.right.isDown) {
+        if (this.cursors.right.isDown
+            && this.squirrel.body.position.x < this.world.width - this.cache.getImage('squirrel').width
+        ) {
             this.squirrel.body.velocity.x = SQUIRREL_SPEED;
         }
 
@@ -104,19 +107,21 @@ var state = {
             },
             {
                 func: this.spawnBird.bind(this),
-                weight: 30
+                weight: this.birdFrequency,
             },
             {
                 func: this.spawnSaw.bind(this),
-                weight: 5
+                weight: 10
+            },
+            {
+                func: function() {},
+                weight: 1000,
             }
-            
         ];
         var max = 0;
         for(var i = 0; i < spawnies.length; i++) max += spawnies[i].weight;
         var random = Math.floor(Math.random() * max);
         var steps = 0;
-        console.log(max, random);
         for(var i = 0; i < spawnies.length; i++) {
             steps += spawnies[i].weight;
             if(random < steps) {
@@ -201,7 +206,7 @@ var state = {
     },
     spawnNut: function() {
         var nut = this.bullets.create(
-            this.squirrel.body.position.x,
+            this.squirrel.body.position.x + this.cache.getImage('nut').width / 2,
             this.squirrel.position.y - this.cache.getImage('nut').height,
             'nut'
         );
@@ -230,6 +235,7 @@ var state = {
             );
             this.game.camera.shake(0.05, 500);
             this.score++;
+            this.birdFrequency += 10;
 
             this.time.events.add(Phaser.Timer.SECOND * 0.5, function() {
                 explosion.kill();
@@ -246,6 +252,7 @@ var state = {
             break;
             case POWER_UP_TYPES.NUGGET:
                 this.showHint(squirrel, 'I LUVE NUGGETS');
+                this.score += 5;
             break;
         }
     },
