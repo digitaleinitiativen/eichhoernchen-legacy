@@ -348,6 +348,7 @@ var state = {
                 this.showHint(squirrel, 'I\'M ON FIRE, BIAATCH');
                 this.squirrelWeapons.animations.play('flames');
                 this.game.time.events.add(Phaser.Timer.SECOND * POWER_UP_TIME, this.normalizeMode, this);
+            break;
             case POWER_UP_TYPES.BURGER:
                 this.shootFrequency *= 0.9;
                 this.createShootTimer();
