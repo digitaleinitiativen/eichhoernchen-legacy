@@ -13,8 +13,8 @@ var POWER_UP_TYPES = {
     LOLLI: 1,
     NUGGET: 2,
     RAINBOW: 3,
-    BURGER: 3,
-    EGG: 5
+    BURGER: 4,
+    EGG: 5,
 };
 
 var SQUIRREL_MODE = {
