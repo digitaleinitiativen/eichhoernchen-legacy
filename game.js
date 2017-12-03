@@ -36,7 +36,23 @@ var BULLET_TYPES = {
 
 var TEXT_COLOR = '#ffdd00';
 
-var state = {
+var scoryBory = 0;
+
+var splash = {
+    preload: function() {
+        this.load.image('start', 'assets/start.png');
+    }, 
+    create: function() {
+        this.screen = this.add.sprite(0, 0, 'start');
+        this.screen.inputEnabled = true;
+        this.screen.events.onInputDown.add(function() {
+            this.game.state.start('play');
+        }, this);
+    }
+}
+
+
+var play = {
     preload: function() {
         this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png?' + ASSET_VERSION, 48, 96);
         this.load.spritesheet('squirrel-weapons', 'assets/squirrel-weapons.png?'  + ASSET_VERSION, 48, 96);
@@ -114,6 +130,16 @@ var state = {
         ) {
             this.squirrel.body.velocity.x = SQUIRREL_SPEED;
         }
+
+        if(this.game.input.activePointer.isDown) {
+            if(this.game.input.activePointer.x < this.squirrel.body.left) {
+                this.squirrel.body.velocity.x = -SQUIRREL_SPEED;
+            }
+            if(this.game.input.activePointer.x > this.squirrel.body.right) {
+                this.squirrel.body.velocity.x = SQUIRREL_SPEED;
+            }
+        }
+
 
         this.sky.tilePosition.y += this.time.physicsElapsed * TREE_SPEED * 0.3;
         this.clouds.tilePosition.y += this.time.physicsElapsed * TREE_SPEED * 0.6;
@@ -398,12 +424,22 @@ var state = {
         this.add.text(10, this.world.height / 2, 'Looooooser', {fill: TEXT_COLOR});
         this.squirrel.animations.play('dead');
         this.squirrelWeapons.animations.play('none');
+        scoryBory = this.score;
+        this.game.time.events.add(Phaser.Timer.SECOND * 4, function() {
+            this.game.state.start('gameover');
+        }.bind(this), this);            
+
     },
     squirrelFallOfTheTree: function() {
         this.gameOver = true;
         this.add.text(10, this.world.height / 2, 'You fell of the tree.\nLOOOOL\nU suck', {fill: TEXT_COLOR, align: 'center'});
         this.squirrel.kill();
         this.squirrelWeapons.animations.play('none');
+        scoryBory = this.score;
+        this.game.time.events.add(Phaser.Timer.SECOND * 4, function() {
+            this.game.state.start('gameover');
+        }.bind(this), this);            
+
     },
     render: function() {
         if(DEBUG) {
@@ -421,10 +457,33 @@ var state = {
     },
 };
 
+var gameover = {
+    preload: function() {
+        this.load.image('gameover', 'assets/gameover.png');
+    }, 
+    create: function() {
+        this.gameover = this.add.sprite(0, 0, 'gameover');
+        this.gameover.inputEnabled = true;
+        this.scoreText = this.add.text(this.game.width / 2, 240, scoryBory, {
+            fill: TEXT_COLOR,
+            align: 'center'
+        });
+        this.scoreText.anchor.setTo(0.5, 0.5);
+        this.gameover.events.onInputDown.add(function() {
+            this.game.state.start('play');
+        }, this);
+    }
+}
+
+
 var game = new Phaser.Game(
     320,
     680,
     Phaser.CANVAS,
-    '', 
-    state
+    ''
 );
+
+game.state.add('splash', splash);
+game.state.add('play', play);
+game.state.add('gameover', gameover);
+game.state.start('splash');
