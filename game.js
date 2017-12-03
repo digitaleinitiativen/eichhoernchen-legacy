@@ -38,22 +38,14 @@ var TEXT_COLOR = '#ffdd00';
 
 var scoryBory = 0;
 
-var splash = {
+var preload = {
     preload: function() {
+        this.scoreText = this.add.text(this.game.width / 2, this.game.height / 2, "LOADING", {
+            fill: TEXT_COLOR,
+            align: 'center'
+        });
+        this.scoreText.anchor.setTo(0.5, 0.5);
         this.load.image('start', 'assets/start.png');
-    }, 
-    create: function() {
-        this.screen = this.add.sprite(0, 0, 'start');
-        this.screen.inputEnabled = true;
-        this.screen.events.onInputDown.add(function() {
-            this.game.state.start('play');
-        }, this);
-    }
-}
-
-
-var play = {
-    preload: function() {
         this.load.spritesheet('squirrel', 'assets/squirrel-spritesheet.png?' + ASSET_VERSION, 48, 96);
         this.load.spritesheet('squirrel-weapons', 'assets/squirrel-weapons.png?'  + ASSET_VERSION, 48, 96);
         this.load.spritesheet('grenade', 'assets/grenade.png', 48, 48);
@@ -71,6 +63,30 @@ var play = {
         this.load.image('saw', 'assets/saw.png');
         this.load.image('egg', 'assets/egg.png');
         this.load.image('burger', 'assets/burger.png');
+        this.load.image('gameover', 'assets/gameover.png');
+    },
+    create: function() {
+        this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+        this.scale.pageAlignHorizontally = true;
+        this.game.state.start('splash');
+    }
+}
+
+var splash = {
+    preload: function() {
+    }, 
+    create: function() {
+        this.screen = this.add.sprite(0, 0, 'start');
+        this.screen.inputEnabled = true;
+        this.screen.events.onInputDown.add(function() {
+            this.game.state.start('play');
+        }, this);
+    }
+}
+
+
+var play = {
+    preload: function() {
     },
     create: function() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -459,7 +475,6 @@ var play = {
 
 var gameover = {
     preload: function() {
-        this.load.image('gameover', 'assets/gameover.png');
     }, 
     create: function() {
         this.gameover = this.add.sprite(0, 0, 'gameover');
@@ -483,7 +498,8 @@ var game = new Phaser.Game(
     ''
 );
 
+game.state.add('preload', preload);
 game.state.add('splash', splash);
 game.state.add('play', play);
 game.state.add('gameover', gameover);
-game.state.start('splash');
+game.state.start('preload');
