@@ -369,6 +369,7 @@ var state = {
         }
     },
     normalizeMode: function() {
+        if(this.gameOver) return;
         this.squirrel.data.mode = SQUIRREL_MODE.NUTS;
         this.squirrelWeapons.animations.play('nuts');
         this.squirrel.animations.play('run');
